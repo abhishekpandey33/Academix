@@ -1,8 +1,12 @@
 from django.shortcuts import render
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from courses.models import Topic
-import openai
+import google.generativeai as palm
+
+palm.configure(api_key=settings.GEMINI_API_KEY)
+gemini_model = palm.GenerativeModel(model_name="models/gemini-1.5-flash")
 
 class ChatView(APIView):
     def post(self, request):
@@ -17,10 +21,6 @@ class ChatView(APIView):
         Answer in a simple and clear way.
         """
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=300
-        )
+        response = gemini_model.generate_content(prompt)
 
-        return Response({"reply": response.choices[0].message.content})
+        return Response({"reply": response.message.content})
